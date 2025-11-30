@@ -22,7 +22,7 @@ export default function SignIn() {
       </View>
 
       <View style={styles.illustrationContainer}>
-        <Image source={images.authBackground} style={styles.illustration} resizeMode="cover" />
+        <Image source={images.authBackground} style={styles.illustration} contentFit="cover" />
       </View>
 
       <View style={styles.loginSection}>
