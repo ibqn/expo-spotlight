@@ -1,13 +1,15 @@
+import { InitialLayout } from "@/componets/initial-layout"
 import { colors } from "@/constants/color"
-import { Stack } from "expo-router"
+import { StatusBar } from "expo-status-bar"
 import { StyleSheet } from "react-native"
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context"
 
 export default function RootLayout() {
   return (
     <SafeAreaProvider>
+      <StatusBar style="light" />
       <SafeAreaView style={styles.container}>
-        <Stack screenOptions={{ headerShown: false }} />
+        <InitialLayout />
       </SafeAreaView>
     </SafeAreaProvider>
   )
