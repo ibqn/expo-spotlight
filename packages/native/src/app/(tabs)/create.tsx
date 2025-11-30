@@ -1,15 +1,47 @@
-import { Text, TouchableOpacity, View } from "react-native"
-import { StyleSheet, Dimensions } from "react-native"
+import {
+  Text,
+  TouchableOpacity,
+  View,
+  StyleSheet,
+  Dimensions,
+  KeyboardAvoidingView,
+  Platform,
+  ActivityIndicator,
+  ScrollView,
+  TextInput,
+} from "react-native"
 import { colors } from "@/constants/color"
 import { useState } from "react"
 import { router } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
+import * as ImagePicker from "expo-image-picker"
+import { Image } from "expo-image"
+import { images } from "@/constants/images"
 
-export default function Create() {
+export default function CreateScreen() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
+  const [caption, setCaption] = useState("")
+
+  const isSharing = false
+
+  const handleShare = () => {
+    console.log("Sharing post with caption:", caption, "and image URI:", selectedImage)
+  }
 
   const pickImage = async () => {
-    // Image picking logic will go here
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: "images",
+      allowsEditing: true,
+      allowsMultipleSelection: false,
+      aspect: [1, 1],
+      quality: 1,
+    })
+
+    if (!result.canceled) {
+      const [image] = result.assets
+      console.log("Selected image URI:", image)
+      setSelectedImage(image.uri)
+    }
   }
 
   if (!selectedImage) {
@@ -32,9 +64,69 @@ export default function Create() {
   }
 
   return (
-    <View>
-      <Text>Create</Text>
-    </View>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={styles.container}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
+    >
+      <View style={styles.contentContainer}>
+        <View style={styles.header}>
+          <TouchableOpacity
+            onPress={() => {
+              setSelectedImage(null)
+              setCaption("")
+            }}
+            disabled={isSharing}
+          >
+            <Ionicons name="close-outline" size={28} color={isSharing ? colors.grey : colors.white} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>New Post</Text>
+          <TouchableOpacity
+            style={[styles.shareButton, isSharing && styles.shareButtonDisabled]}
+            disabled={isSharing || !selectedImage}
+            onPress={handleShare}
+          >
+            {isSharing ? (
+              <ActivityIndicator size="small" color={colors.primary} />
+            ) : (
+              <Text style={styles.shareText}>Share</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          bounces={false}
+          keyboardShouldPersistTaps="handled"
+          contentOffset={{ x: 0, y: 100 }}
+        >
+          <View style={[styles.content, isSharing && styles.contentDisabled]}>
+            <View style={styles.imageSection}>
+              <Image source={selectedImage} style={styles.previewImage} contentFit="cover" transition={200} />
+              <TouchableOpacity style={styles.changeImageButton} onPress={pickImage} disabled={isSharing}>
+                <Ionicons name="image-outline" size={20} color={colors.white} />
+                <Text style={styles.changeImageText}>Change</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.inputSection}>
+              <View style={styles.captionContainer}>
+                <Image source={images.avatar} style={styles.userAvatar} contentFit="cover" transition={200} />
+                <TextInput
+                  style={styles.captionInput}
+                  placeholder="Write a caption..."
+                  placeholderTextColor={colors.grey}
+                  multiline
+                  value={caption}
+                  onChangeText={setCaption}
+                  editable={!isSharing}
+                />
+              </View>
+            </View>
+          </View>
+        </ScrollView>
+      </View>
+    </KeyboardAvoidingView>
   )
 }
 
