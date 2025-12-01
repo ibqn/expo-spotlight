@@ -1,17 +1,18 @@
 import { InitialLayout } from "@/componets/initial-layout"
 import { colors } from "@/constants/color"
+import { Providers } from "@/providers"
 import { StatusBar } from "expo-status-bar"
 import { StyleSheet } from "react-native"
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context"
+import { SafeAreaView } from "react-native-safe-area-context"
 
 export default function RootLayout() {
   return (
-    <SafeAreaProvider>
+    <Providers>
       <StatusBar style="light" />
       <SafeAreaView style={styles.container}>
         <InitialLayout />
       </SafeAreaView>
-    </SafeAreaProvider>
+    </Providers>
   )
 }
 
