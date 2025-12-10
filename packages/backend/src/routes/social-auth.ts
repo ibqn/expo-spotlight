@@ -48,7 +48,6 @@ const socialAuthRoute = new Hono<ExtEnv>()
       tokens = await github.validateAuthorizationCode(code)
     } catch (error) {
       console.error(error)
-      // Invalid code or client credentials
       return c.body(null, { status: 400 })
     }
     const config = { headers: { Authorization: `Bearer ${tokens.accessToken()}` } }
@@ -112,6 +111,14 @@ const socialAuthRoute = new Hono<ExtEnv>()
 
     setCookie(c, sessionCookieName, token, getSessionCookieOptions(session.expiresAt))
 
+    const userAgent = c.req.header("user-agent") || ""
+    const isMobile = userAgent.includes("Expo") || c.req.query("mobile") === "true"
+
+    if (isMobile) {
+      const mobileRedirectUrl = `expospotlight://auth?token=${token}`
+      return c.redirect(mobileRedirectUrl, 302)
+    }
+
     return c.redirect(env.FRONTEND_URL, 302)
   })
   .get("/sign-in/google", async (c) => {
@@ -157,7 +164,6 @@ const socialAuthRoute = new Hono<ExtEnv>()
       tokens = await google.validateAuthorizationCode(code, storedCodeVerifier)
     } catch (error) {
       console.error(error)
-      // Invalid code or client credentials
       return c.body(null, { status: 400 })
     }
 
@@ -194,6 +200,14 @@ const socialAuthRoute = new Hono<ExtEnv>()
     const session = await createSession(token, user.id)
 
     setCookie(c, sessionCookieName, token, getSessionCookieOptions(session.expiresAt))
+
+    const userAgent = c.req.header("user-agent") || ""
+    const isMobile = userAgent.includes("Expo") || c.req.query("mobile") === "true"
+
+    if (isMobile) {
+      const mobileRedirectUrl = `expospotlight://auth?token=${token}`
+      return c.redirect(mobileRedirectUrl, 302)
+    }
 
     return c.redirect(env.FRONTEND_URL, 302)
   })

@@ -2,9 +2,17 @@ import { colors } from "@/constants/color"
 import { Stack, useRouter, useSegments } from "expo-router"
 import { useEffect, useMemo } from "react"
 import { ActivityIndicator, StyleSheet, View } from "react-native"
+import { useOauthCallback } from "@/hooks/use-oauth-callback"
+import { useAuthStore } from "@/stores/auth-store"
 
 export const InitialLayout = () => {
-  const { isLoading, isAuthenticated } = { isLoading: false, isAuthenticated: true }
+  const { isLoading, isAuthenticated, checkAuth } = useAuthStore()
+
+  useOauthCallback()
+
+  useEffect(() => {
+    checkAuth()
+  }, [checkAuth])
 
   const [segment] = useSegments()
   const router = useRouter()

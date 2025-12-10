@@ -3,13 +3,60 @@ import { images } from "@/constants/images"
 import { Ionicons } from "@expo/vector-icons"
 import { Image } from "expo-image"
 import { router } from "expo-router"
-import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from "react-native"
+import { Dimensions, StyleSheet, Text, TouchableOpacity, View, Alert, ActivityIndicator } from "react-native"
+import * as WebBrowser from "expo-web-browser"
+import { env } from "@/utils/env"
+import { useState } from "react"
+import { setSessionToken } from "@/utils/session-store"
+import { validate } from "@/api/auth"
 
 export default function SignIn() {
-  const handleGoogleSignIn = () => {
-    console.log("Google Sign-In pressed")
-    router.replace("/(tabs)")
+  const [isLoading, setIsLoading] = useState<string | null>(null)
+
+  const handleSocialAuth = async (provider: "github" | "google") => {
+    if (isLoading) {
+      return
+    }
+
+    setIsLoading(provider)
+    try {
+      const authUrl = `${env.EXPO_PUBLIC_API_URL}/api/social-auth/sign-in/${provider}?mobile=true`
+      const redirectUrl = "expospotlight://auth"
+
+      const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUrl)
+
+      if (result.type === "success" && result.url) {
+        const url = new URL(result.url)
+        const sessionToken = url.searchParams.get("token")
+
+        if (sessionToken) {
+          await setSessionToken(sessionToken)
+        }
+
+        const sessionResult = await validate()
+
+        if (sessionResult.session && sessionResult.user) {
+          router.replace("/(tabs)")
+          return
+        }
+
+        Alert.alert(
+          "Authentication Error",
+          `Failed to authenticate with ${provider === "github" ? "GitHub" : "Google"}`
+        )
+      } else if (result.type === "cancel") {
+        console.log(`User cancelled ${provider} authentication`)
+      }
+    } catch (error) {
+      console.error(`${provider} authentication error:`, error)
+      Alert.alert("Error", "An error occurred during authentication")
+    } finally {
+      setIsLoading(null)
+    }
   }
+
+  const handleGitHubSignIn = () => handleSocialAuth("github")
+  const handleGoogleSignIn = () => handleSocialAuth("google")
 
   return (
     <View style={styles.container}>
@@ -26,11 +73,40 @@ export default function SignIn() {
       </View>
 
       <View style={styles.loginSection}>
-        <TouchableOpacity style={styles.googleButton} onPress={handleGoogleSignIn} activeOpacity={0.9}>
-          <View style={styles.googleIconContainer}>
-            <Ionicons name="logo-google" size={20} color={colors.surface} />
+        <TouchableOpacity
+          style={[styles.socialButton, isLoading === "github" && styles.socialButtonLoading]}
+          onPress={handleGitHubSignIn}
+          activeOpacity={0.9}
+          disabled={!!isLoading}
+        >
+          <View style={styles.socialIconContainer}>
+            {isLoading === "github" ? (
+              <ActivityIndicator size="small" color={colors.surface} />
+            ) : (
+              <Ionicons name="logo-github" size={20} color={colors.surface} />
+            )}
           </View>
-          <Text style={styles.googleButtonText}>Continue with Google</Text>
+          <Text style={styles.socialButtonText}>
+            {isLoading === "github" ? "Signing in..." : "Continue with GitHub"}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.socialButton, styles.googleButton, isLoading === "google" && styles.socialButtonLoading]}
+          onPress={handleGoogleSignIn}
+          activeOpacity={0.9}
+          disabled={!!isLoading}
+        >
+          <View style={styles.socialIconContainer}>
+            {isLoading === "google" ? (
+              <ActivityIndicator size="small" color={colors.surface} />
+            ) : (
+              <Ionicons name="logo-google" size={20} color={colors.surface} />
+            )}
+          </View>
+          <Text style={styles.socialButtonText}>
+            {isLoading === "google" ? "Signing in..." : "Continue with Google"}
+          </Text>
         </TouchableOpacity>
 
         <Text style={styles.termsText}>By continuing, you agree to our Terms and Privacy Policy</Text>
@@ -90,7 +166,7 @@ export const styles = StyleSheet.create({
     paddingBottom: 40,
     alignItems: "center",
   },
-  googleButton: {
+  socialButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -110,17 +186,23 @@ export const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 5,
   },
-  googleIconContainer: {
+  socialIconContainer: {
     width: 24,
     height: 24,
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
   },
-  googleButtonText: {
+  socialButtonText: {
     fontSize: 16,
     fontWeight: "600",
     color: colors.surface,
+  },
+  socialButtonLoading: {
+    opacity: 0.7,
+  },
+  googleButton: {
+    marginBottom: 12,
   },
   termsText: {
     textAlign: "center",
