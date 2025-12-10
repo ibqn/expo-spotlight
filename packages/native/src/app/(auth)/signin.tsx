@@ -20,7 +20,7 @@ export default function SignIn() {
 
     setIsLoading(provider)
     try {
-      const authUrl = `${env.EXPO_PUBLIC_API_URL}/api/social-auth/sign-in/${provider}?mobile=true`
+      const authUrl = `${env.EXPO_PUBLIC_API_URL}/auth/sign-in/${provider}?mobile=true`
       const redirectUrl = "expospotlight://auth"
 
       const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUrl)
