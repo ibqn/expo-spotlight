@@ -16,6 +16,7 @@ const socialAuthRoute = new Hono<ExtEnv>()
   .get("/sign-in/github", async (c) => {
     const state = generateState()
     const scopes = ["user:email"]
+    const isMobile = c.req.query("mobile") === "true"
 
     const url = github.createAuthorizationURL(state, scopes)
 
@@ -27,6 +28,16 @@ const socialAuthRoute = new Hono<ExtEnv>()
       sameSite: "lax",
     })
 
+    if (isMobile) {
+      setCookie(c, "github_oauth_mobile", "true", {
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        httpOnly: true,
+        maxAge: 60 * 10,
+        sameSite: "lax",
+      })
+    }
+
     return c.redirect(url.toString(), 302)
   })
   .get("/sign-in/github/callback", async (c) => {
@@ -34,6 +45,7 @@ const socialAuthRoute = new Hono<ExtEnv>()
 
     console.log("code", code, "state", state)
     const storedState = getCookie(c, "github_oauth_state") ?? null
+    const isMobile = getCookie(c, "github_oauth_mobile") === "true"
     if (code === null || state === null || storedState === null) {
       console.error("Missing code or state in query parameters or cookie")
       return c.body(null, { status: 400 })
@@ -111,9 +123,6 @@ const socialAuthRoute = new Hono<ExtEnv>()
 
     setCookie(c, sessionCookieName, token, getSessionCookieOptions(session.expiresAt))
 
-    const userAgent = c.req.header("user-agent") || ""
-    const isMobile = userAgent.includes("Expo") || c.req.query("mobile") === "true"
-
     if (isMobile) {
       const mobileRedirectUrl = `expospotlight://auth?token=${token}`
       return c.redirect(mobileRedirectUrl, 302)
@@ -125,6 +134,7 @@ const socialAuthRoute = new Hono<ExtEnv>()
     const state = generateState()
     const codeVerifier = generateCodeVerifier()
     const scopes = ["openid", "profile", "email"]
+    const isMobile = c.req.query("mobile") === "true"
 
     const url = google.createAuthorizationURL(state, codeVerifier, scopes)
 
@@ -144,6 +154,16 @@ const socialAuthRoute = new Hono<ExtEnv>()
       sameSite: "lax",
     })
 
+    if (isMobile) {
+      setCookie(c, "google_oauth_mobile", "true", {
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        httpOnly: true,
+        maxAge: 60 * 10,
+        sameSite: "lax",
+      })
+    }
+
     return c.redirect(url.toString(), 302)
   })
   .get("/sign-in/google/callback", async (c) => {
@@ -152,6 +172,7 @@ const socialAuthRoute = new Hono<ExtEnv>()
     console.log("code", code, "state", state)
     const storedState = getCookie(c, "google_oauth_state") ?? null
     const storedCodeVerifier = getCookie(c, "google_oauth_code_verifier") ?? null
+    const isMobile = getCookie(c, "google_oauth_mobile") === "true"
     if (code === null || state === null || storedState === null || storedCodeVerifier === null) {
       return c.body(null, { status: 400 })
     }
@@ -200,9 +221,6 @@ const socialAuthRoute = new Hono<ExtEnv>()
     const session = await createSession(token, user.id)
 
     setCookie(c, sessionCookieName, token, getSessionCookieOptions(session.expiresAt))
-
-    const userAgent = c.req.header("user-agent") || ""
-    const isMobile = userAgent.includes("Expo") || c.req.query("mobile") === "true"
 
     if (isMobile) {
       const mobileRedirectUrl = `expospotlight://auth?token=${token}`
