@@ -2,16 +2,18 @@ import { colors } from "@/constants/color"
 import { images } from "@/constants/images"
 import { Ionicons } from "@expo/vector-icons"
 import { Image } from "expo-image"
-import { router } from "expo-router"
+
 import { Dimensions, StyleSheet, Text, TouchableOpacity, View, Alert, ActivityIndicator } from "react-native"
 import * as WebBrowser from "expo-web-browser"
 import { env } from "@/utils/env"
 import { useState } from "react"
+
 import { setSessionToken } from "@/utils/session-store"
-import { validate } from "@/api/auth"
+import { useAuthStore } from "@/stores/auth-store"
 
 export default function SignIn() {
   const [isLoading, setIsLoading] = useState<string | null>(null)
+  const { checkAuth } = useAuthStore()
 
   const handleSocialAuth = async (provider: "github" | "google") => {
     if (isLoading) {
@@ -29,21 +31,18 @@ export default function SignIn() {
         const url = new URL(result.url)
         const sessionToken = url.searchParams.get("token")
 
+        console.log(`${provider} session token:`, sessionToken)
+
         if (sessionToken) {
+          console.log("Signin - setting session token")
           await setSessionToken(sessionToken)
+          console.log("Signin - token set, waiting brief moment")
+          await new Promise((resolve) => setTimeout(resolve, 200))
         }
 
-        const sessionResult = await validate()
-
-        if (sessionResult.session && sessionResult.user) {
-          router.replace("/(tabs)")
-          return
-        }
-
-        Alert.alert(
-          "Authentication Error",
-          `Failed to authenticate with ${provider === "github" ? "GitHub" : "Google"}`
-        )
+        console.log("Signin - calling checkAuth to update global state")
+        await checkAuth()
+        console.log("Signin - checkAuth completed, auth store should be updated")
       } else if (result.type === "cancel") {
         console.log(`User cancelled ${provider} authentication`)
       }

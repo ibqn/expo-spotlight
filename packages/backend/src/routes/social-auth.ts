@@ -123,11 +123,14 @@ const socialAuthRoute = new Hono<ExtEnv>()
 
     setCookie(c, sessionCookieName, token, getSessionCookieOptions(session.expiresAt))
 
+    console.log("isMobile flag:", isMobile)
     if (isMobile) {
       const mobileRedirectUrl = `expospotlight://auth?token=${token}`
+      console.log("Mobile redirect:", mobileRedirectUrl)
       return c.redirect(mobileRedirectUrl, 302)
     }
 
+    console.log("Web redirect:", env.FRONTEND_URL)
     return c.redirect(env.FRONTEND_URL, 302)
   })
   .get("/sign-in/google", async (c) => {
@@ -226,7 +229,6 @@ const socialAuthRoute = new Hono<ExtEnv>()
       const mobileRedirectUrl = `expospotlight://auth?token=${token}`
       return c.redirect(mobileRedirectUrl, 302)
     }
-
     return c.redirect(env.FRONTEND_URL, 302)
   })
 

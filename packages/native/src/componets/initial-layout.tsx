@@ -2,13 +2,11 @@ import { colors } from "@/constants/color"
 import { Stack, useRouter, useSegments } from "expo-router"
 import { useEffect, useMemo } from "react"
 import { ActivityIndicator, StyleSheet, View } from "react-native"
-import { useOauthCallback } from "@/hooks/use-oauth-callback"
+
 import { useAuthStore } from "@/stores/auth-store"
 
 export const InitialLayout = () => {
   const { isLoading, isAuthenticated, checkAuth } = useAuthStore()
-
-  useOauthCallback()
 
   useEffect(() => {
     checkAuth()
@@ -20,14 +18,26 @@ export const InitialLayout = () => {
   const inAuthScreen = useMemo(() => segment === "(auth)", [segment])
 
   useEffect(() => {
+    console.log("[InitialLayout] Navigation effect triggered:", {
+      isLoading,
+      isAuthenticated,
+      inAuthScreen,
+      segment,
+    })
+
     if (isLoading) {
+      console.log("[InitialLayout] Still loading, skipping navigation")
       return
     }
 
     if (!isAuthenticated && !inAuthScreen) {
+      console.log("[InitialLayout] Not authenticated, redirecting to signin")
       router.replace("/(auth)/signin")
     } else if (isAuthenticated && inAuthScreen) {
+      console.log("[InitialLayout] Authenticated in auth screen, redirecting to tabs")
       router.replace("/(tabs)")
+    } else {
+      console.log("[InitialLayout] No navigation needed")
     }
   }, [isAuthenticated, isLoading, inAuthScreen, segment, router])
 

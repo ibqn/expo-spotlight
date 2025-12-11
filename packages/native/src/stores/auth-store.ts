@@ -56,11 +56,14 @@ export const useAuthStore = create<AuthStore>()(
       isAuthenticated: null,
 
       checkAuth: async () => {
+        console.log("[AuthStore] checkAuth called")
         set({ isLoading: true })
         try {
           const { user, session } = await validate()
+          console.log("[AuthStore] Validation result:", { hasUser: !!user, hasSession: !!session })
 
           if (user && session) {
+            console.log("[AuthStore] Setting authenticated state")
             set({
               user: user,
               session: session,
@@ -73,6 +76,7 @@ export const useAuthStore = create<AuthStore>()(
           console.error("[AuthStore] checkAuth - Error:", error)
         }
 
+        console.log("[AuthStore] Setting unauthenticated state")
         set({
           user: null,
           session: null,
