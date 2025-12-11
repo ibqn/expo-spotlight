@@ -2,12 +2,10 @@ import { colors } from "@/constants/color"
 import { images } from "@/constants/images"
 import { Ionicons } from "@expo/vector-icons"
 import { Image } from "expo-image"
-
 import { Dimensions, StyleSheet, Text, TouchableOpacity, View, Alert, ActivityIndicator } from "react-native"
 import * as WebBrowser from "expo-web-browser"
 import { env } from "@/utils/env"
 import { useState } from "react"
-
 import { setSessionToken } from "@/utils/session-store"
 import { useAuthStore } from "@/stores/auth-store"
 
@@ -34,15 +32,15 @@ export default function SignIn() {
         console.log(`${provider} session token:`, sessionToken)
 
         if (sessionToken) {
-          console.log("Signin - setting session token")
+          // console.log("Signin - setting session token")
           await setSessionToken(sessionToken)
-          console.log("Signin - token set, waiting brief moment")
-          await new Promise((resolve) => setTimeout(resolve, 200))
+          // console.log("Signin - token set, waiting brief moment")
+          // await new Promise((resolve) => setTimeout(resolve, 200))
         }
 
-        console.log("Signin - calling checkAuth to update global state")
+        // console.log("Signin - calling checkAuth to update global state")
         await checkAuth()
-        console.log("Signin - checkAuth completed, auth store should be updated")
+        // console.log("Signin - checkAuth completed, auth store should be updated")
       } else if (result.type === "cancel") {
         console.log(`User cancelled ${provider} authentication`)
       }
