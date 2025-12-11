@@ -15,8 +15,8 @@ import { pinoLogger } from "./middleware/pino-logger"
 import { env } from "./env"
 import { userRoute } from "./routes/user"
 import { socialAuthRoute } from "./routes/social-auth"
-import { eventRoute } from "./routes/event"
 import { accountRoute } from "./routes/account"
+import { fileRoute, uploadRoute } from "./routes/upload"
 
 const app = new Hono<ExtEnv>()
 
@@ -70,11 +70,12 @@ app.use(
 
 export const routes = app
   .route("/auth", socialAuthRoute)
+  .route("/uploads", fileRoute)
   .basePath("/api")
   .route("/auth", authRoute)
   .route("/user", userRoute)
-  .route("/event", eventRoute)
   .route("/account", accountRoute)
+  .route("/uploads", uploadRoute)
 
 const port = env.PORT
 const hostname = "0.0.0.0"
