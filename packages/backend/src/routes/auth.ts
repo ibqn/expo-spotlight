@@ -15,6 +15,7 @@ import { sendPasswordResetEmail } from "../lib/email"
 import { newPasswordSchema } from "database/src/validators/new-password"
 import { paramTokenSchema } from "database/src/validators/param"
 import { zValidator } from "../utils/z-validator"
+import { response } from "database/src/utils/response"
 
 const authRoute = new Hono<ExtEnv>()
   .post("/signup", zValidator("json", signupSchema), async (c) => {
@@ -27,7 +28,7 @@ const authRoute = new Hono<ExtEnv>()
     }
 
     setCookie(c, sessionCookieName, token, getSessionCookieOptions())
-    return c.json<SuccessResponse>({ success: true, message: "User created" }, 201)
+    return c.json<SuccessResponse>(response("User created"), 201)
   })
   .post("/signin", zValidator("json", signinSchema), async (c) => {
     const inputData = c.req.valid("json")
@@ -39,14 +40,14 @@ const authRoute = new Hono<ExtEnv>()
     }
 
     setCookie(c, sessionCookieName, token, getSessionCookieOptions())
-    return c.json<SuccessResponse>({ success: true, message: "Signed in" }, 201)
+    return c.json<SuccessResponse>(response("Signed in"), 201)
   })
   .get("/signout", signedIn, async (c) => {
     const token = getCookie(c, sessionCookieName)
     if (token) {
       await invalidateSessionToken(token)
       deleteCookie(c, sessionCookieName)
-      return c.json<SuccessResponse>({ success: true, message: "Signed out" })
+      return c.json<SuccessResponse>(response("Signed out"))
     }
     throw new HTTPException(401, { message: "You must be signed in to sign out" })
   })
@@ -68,15 +69,15 @@ const authRoute = new Hono<ExtEnv>()
   .post("/reset-password", zValidator("json", resetPasswordSchema), async (c) => {
     const { email } = c.req.valid("json")
 
-    const response = await getPasswordResetToken({ email })
-    if (!response.success) {
-      return c.json<ErrorResponse>(response, 404)
+    const responseData = await getPasswordResetToken({ email })
+    if (!responseData.success) {
+      return c.json<ErrorResponse>(responseData, 404)
     }
 
-    const { data: token } = response
+    const { data: token } = responseData
 
     await sendPasswordResetEmail(email, token)
-    return c.json<SuccessResponse>({ success: true, message: "Email with password reset token sent" })
+    return c.json<SuccessResponse>(response("Email with password reset token sent"))
   })
   .post(
     "/reset-password/:token",
