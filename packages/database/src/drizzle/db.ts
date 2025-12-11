@@ -12,6 +12,7 @@ import {
   userRoleTable,
 } from "./schema/role"
 import { env } from "../env"
+import { postRelations, postTable } from "./schema/post"
 
 export const db = drizzle(env.DATABASE_URL, {
   logger: true,
@@ -31,5 +32,7 @@ export const db = drizzle(env.DATABASE_URL, {
     permissionRelations,
     rolePermission: rolePermissionTable,
     rolePermissionRelations,
+    post: postTable,
+    postRelations,
   },
 })
