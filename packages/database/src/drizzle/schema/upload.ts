@@ -3,6 +3,7 @@ import { createdAtUpdatedAt } from "./utils"
 import { schema } from "./schema"
 import { relations, type InferSelectModel } from "drizzle-orm"
 import { userTable, type User } from "./auth"
+import { createInsertSchema } from "drizzle-zod"
 
 export const uploadTable = schema.table("upload", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -24,3 +25,5 @@ export const uploadRelations = relations(uploadTable, ({ one }) => ({
 export type Upload = InferSelectModel<typeof uploadTable> & {
   user?: User | null
 }
+
+export const insertUploadSchema = createInsertSchema(uploadTable)
