@@ -20,3 +20,6 @@ export type UpdateUserSchema = z.infer<typeof updateUserSchema>
 
 export const userSearchSchema = paginationSchema
 export type UserSearchSchema = z.infer<typeof userSearchSchema>
+
+export const userIdSchema = z.object({ userId: z.uuid() })
+export type UserIdSchema = z.infer<typeof userIdSchema>
