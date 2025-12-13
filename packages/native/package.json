@@ -21,6 +21,7 @@
     "axios": "^1.13.2",
     "cookie": "^1.1.1",
     "database": "workspace:*",
+    "date-fns": "^4.1.0",
     "expo": "~54.0.29",
     "expo-constants": "~18.0.12",
     "expo-font": "~14.0.10",
