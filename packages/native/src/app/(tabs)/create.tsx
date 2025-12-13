@@ -28,18 +28,12 @@ export default function CreateScreen() {
     control,
     handleSubmit,
     formState: { isSubmitting },
-
     watch,
     setValue,
   } = useForm({
     resolver: zodResolver(postFormSchema),
     defaultValues: {
-      image: {
-        uri: "",
-        name: "",
-        type: "",
-        size: undefined,
-      },
+      image: { uri: "", name: "", type: "", size: undefined },
       caption: undefined,
     },
   })
