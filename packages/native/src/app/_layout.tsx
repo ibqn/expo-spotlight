@@ -1,4 +1,4 @@
-import { InitialLayout } from "@/componets/initial-layout"
+import { InitialLayout } from "@/components/initial-layout"
 import { colors } from "@/constants/color"
 import { Providers } from "@/providers"
 import { StatusBar } from "expo-status-bar"
