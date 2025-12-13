@@ -1,24 +1,11 @@
-import { Text, View, TouchableOpacity, StyleSheet, Alert } from "react-native"
-import { colors } from "@/constants/color"
+import { Text, View, TouchableOpacity, StyleSheet } from "react-native"
+import { useSignOut } from "@/hooks/use-sign-out"
 import { useAuthStore } from "@/stores/auth-store"
-import { getSignout } from "@/api/auth"
-import { deleteSessionToken } from "@/utils/session-store"
-import { router } from "expo-router"
+import { colors } from "@/constants/color"
 
 export default function Profile() {
-  const { clearAuth, user } = useAuthStore()
-
-  const handleSignOut = async () => {
-    try {
-      await getSignout()
-      await deleteSessionToken()
-      clearAuth()
-      router.replace("/(auth)/signin")
-    } catch (error) {
-      console.error("Sign out error:", error)
-      Alert.alert("Error", "Failed to sign out")
-    }
-  }
+  const { user } = useAuthStore()
+  const { signOut } = useSignOut()
 
   return (
     <View style={styles.container}>
@@ -31,7 +18,12 @@ export default function Profile() {
         </View>
       )}
 
-      <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
+      <TouchableOpacity
+        style={styles.signOutButton}
+        onPress={() => {
+          signOut()
+        }}
+      >
         <Text style={styles.signOutText}>Sign Out</Text>
       </TouchableOpacity>
     </View>

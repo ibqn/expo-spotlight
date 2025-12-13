@@ -8,17 +8,17 @@ import type { ParamTokenSchema } from "database/src/validators/param"
 import type { NewPasswordSchema } from "database/src/validators/new-password"
 import { SessionValidationResult } from "database/src/lucia"
 
-export const postSignup = async (formData: SigninSchema) => {
+export const postSignUp = async (formData: SigninSchema) => {
   const response = await axios.post<ApiResponse<User>>("/auth/signup", formData)
   return response.data
 }
 
-export const postSignin = async (formData: SigninSchema) => {
+export const postSignIn = async (formData: SigninSchema) => {
   const response = await axios.post<ApiResponse<User>>("/auth/signin", formData)
   return response.data
 }
 
-export const getSignout = async () => {
+export const getSignOut = async () => {
   const { data: response } = await axios.get<ApiResponse>("/auth/signout")
   return response
 }
