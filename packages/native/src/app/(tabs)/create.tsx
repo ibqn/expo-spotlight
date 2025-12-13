@@ -9,39 +9,85 @@ import {
   ActivityIndicator,
   ScrollView,
   TextInput,
+  Alert,
 } from "react-native"
 import { colors } from "@/constants/color"
-import { useState } from "react"
 import { router } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
 import * as ImagePicker from "expo-image-picker"
 import { Image } from "expo-image"
 import { images } from "@/constants/images"
+import { useMutation } from "@tanstack/react-query"
+import { postPost } from "@/api/post"
+import { Controller, useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { PostFormSchema, postFormSchema } from "@/validators/post"
 
 export default function CreateScreen() {
-  const [selectedImage, setSelectedImage] = useState<string | null>(null)
-  const [caption, setCaption] = useState("")
+  const {
+    control,
+    handleSubmit,
+    formState: { isSubmitting },
 
-  const isSharing = false
+    watch,
+    setValue,
+  } = useForm({
+    resolver: zodResolver(postFormSchema),
+    defaultValues: {
+      image: {
+        uri: "",
+        name: "",
+        type: "",
+        size: undefined,
+      },
+      caption: undefined,
+    },
+  })
 
-  const handleShare = () => {
-    console.log("Sharing post with caption:", caption, "and image URI:", selectedImage)
-  }
+  const selectedImage = watch("image").uri
 
-  const pickImage = async () => {
+  const { mutate: sharePost, isPending: isSharing } = useMutation({
+    mutationFn: postPost,
+    onSuccess: (data) => {
+      console.log("Post shared successfully:", data)
+      router.replace("/(tabs)")
+    },
+  })
+
+  const handleShare = handleSubmit((data: PostFormSchema) => {
+    console.log("Sharing post with caption: ", data.caption, " and image URI: ", selectedImage)
+    sharePost(data)
+  })
+
+  const pickImage = async (onChange: (value: PostFormSchema["image"]) => void) => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync()
+    if (!permission.granted) {
+      Alert.alert("Permission required", "We need access to your photos.")
+      return
+    }
+
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: "images",
+      mediaTypes: ["images"],
       allowsEditing: true,
       allowsMultipleSelection: false,
       aspect: [1, 1],
       quality: 1,
     })
 
-    if (!result.canceled) {
-      const [image] = result.assets
-      console.log("Selected image URI:", image)
-      setSelectedImage(image.uri)
+    if (result.canceled) {
+      return
     }
+
+    const [image] = result.assets
+    console.log("Selected image URI:", image)
+    const file = {
+      uri: image.uri,
+      name: image.fileName?.toLowerCase() ?? "image.jpg",
+      type: image.mimeType ?? "image/jpeg",
+      size: image.fileSize ?? undefined,
+    }
+
+    onChange(file)
   }
 
   if (!selectedImage) {
@@ -55,10 +101,16 @@ export default function CreateScreen() {
           <View style={{ width: 28 }} />
         </View>
 
-        <TouchableOpacity style={styles.emptyImageContainer} onPress={pickImage}>
-          <Ionicons name="image-outline" size={48} color={colors.grey} />
-          <Text style={styles.emptyImageText}>Tap to select an image</Text>
-        </TouchableOpacity>
+        <Controller
+          control={control}
+          name="image"
+          render={({ field: { onChange } }) => (
+            <TouchableOpacity style={styles.emptyImageContainer} onPress={() => pickImage(onChange)}>
+              <Ionicons name="image-outline" size={48} color={colors.grey} />
+              <Text style={styles.emptyImageText}>Tap to select an image</Text>
+            </TouchableOpacity>
+          )}
+        />
       </View>
     )
   }
@@ -73,10 +125,10 @@ export default function CreateScreen() {
         <View style={styles.header}>
           <TouchableOpacity
             onPress={() => {
-              setSelectedImage(null)
-              setCaption("")
+              setValue("image", { uri: "", name: "", type: "", size: undefined })
+              setValue("caption", undefined)
             }}
-            disabled={isSharing}
+            disabled={isSubmitting}
           >
             <Ionicons name="close-outline" size={28} color={isSharing ? colors.grey : colors.white} />
           </TouchableOpacity>
@@ -103,23 +155,39 @@ export default function CreateScreen() {
           <View style={[styles.content, isSharing && styles.contentDisabled]}>
             <View style={styles.imageSection}>
               <Image source={selectedImage} style={styles.previewImage} contentFit="cover" transition={200} />
-              <TouchableOpacity style={styles.changeImageButton} onPress={pickImage} disabled={isSharing}>
-                <Ionicons name="image-outline" size={20} color={colors.white} />
-                <Text style={styles.changeImageText}>Change</Text>
-              </TouchableOpacity>
+              <Controller
+                control={control}
+                name="image"
+                render={({ field: { onChange } }) => (
+                  <TouchableOpacity
+                    style={styles.changeImageButton}
+                    onPress={() => pickImage(onChange)}
+                    disabled={isSharing}
+                  >
+                    <Ionicons name="image-outline" size={20} color={colors.white} />
+                    <Text style={styles.changeImageText}>Change</Text>
+                  </TouchableOpacity>
+                )}
+              />
             </View>
 
             <View style={styles.inputSection}>
               <View style={styles.captionContainer}>
                 <Image source={images.avatar} style={styles.userAvatar} contentFit="cover" transition={200} />
-                <TextInput
-                  style={styles.captionInput}
-                  placeholder="Write a caption..."
-                  placeholderTextColor={colors.grey}
-                  multiline
-                  value={caption}
-                  onChangeText={setCaption}
-                  editable={!isSharing}
+                <Controller
+                  control={control}
+                  name="caption"
+                  render={({ field: { onChange, value } }) => (
+                    <TextInput
+                      style={styles.captionInput}
+                      placeholder="Write a caption..."
+                      placeholderTextColor={colors.grey}
+                      multiline
+                      value={value}
+                      onChangeText={onChange}
+                      editable={!isSharing}
+                    />
+                  )}
                 />
               </View>
             </View>
