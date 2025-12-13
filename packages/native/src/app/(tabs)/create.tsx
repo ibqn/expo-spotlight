@@ -29,7 +29,7 @@ export default function CreateScreen() {
     handleSubmit,
     formState: { isSubmitting },
     watch,
-    setValue,
+    reset,
   } = useForm({
     resolver: zodResolver(postFormSchema),
     defaultValues: {
@@ -45,6 +45,7 @@ export default function CreateScreen() {
     onSuccess: (data) => {
       console.log("Post shared successfully:", data)
       router.replace("/(tabs)")
+      reset()
     },
   })
 
@@ -119,8 +120,7 @@ export default function CreateScreen() {
         <View style={styles.header}>
           <TouchableOpacity
             onPress={() => {
-              setValue("image", { uri: "", name: "", type: "", size: undefined })
-              setValue("caption", undefined)
+              reset()
             }}
             disabled={isSubmitting}
           >
