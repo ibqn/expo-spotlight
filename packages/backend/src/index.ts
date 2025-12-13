@@ -16,6 +16,7 @@ import { env } from "./env"
 import { userRoute } from "./routes/user"
 import { socialAuthRoute } from "./routes/social-auth"
 import { fileRoute, uploadRoute } from "./routes/upload"
+import { postRoute } from "./routes/post"
 
 const app = new Hono<ExtEnv>()
 
@@ -69,11 +70,12 @@ app.use(
 
 export const routes = app
   .route("/auth", socialAuthRoute)
-  .route("/uploads", fileRoute)
+  .route("/upload", fileRoute)
   .basePath("/api")
   .route("/auth", authRoute)
   .route("/user", userRoute)
-  .route("/uploads", uploadRoute)
+  .route("/upload", uploadRoute)
+  .route("/post", postRoute)
 
 const port = env.PORT
 const hostname = "0.0.0.0"
