@@ -1,7 +1,7 @@
 import { colors } from "@/constants/color"
 import { Text, View } from "react-native"
 
-export const NoPostsFound = () => (
+export const PostsNotFound = () => (
   <View
     style={{
       flex: 1,
