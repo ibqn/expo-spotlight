@@ -2,12 +2,13 @@ import { colors } from "@/constants/color"
 import { images } from "@/constants/images"
 import { Ionicons } from "@expo/vector-icons"
 import { Image } from "expo-image"
-import { Dimensions, StyleSheet, Text, TouchableOpacity, View, Alert, ActivityIndicator } from "react-native"
+import { Dimensions, StyleSheet, Text, View, Alert } from "react-native"
 import * as WebBrowser from "expo-web-browser"
 import { env } from "@/utils/env"
 import { useState } from "react"
 import { setSessionToken } from "@/utils/session-store"
 import { useAuthStore } from "@/stores/auth-store"
+import { SocialSignInButton } from "@/components/social-sign-in-button"
 
 export default function SignIn() {
   const [isLoading, setIsLoading] = useState<string | null>(null)
@@ -70,41 +71,20 @@ export default function SignIn() {
       </View>
 
       <View style={styles.loginSection}>
-        <TouchableOpacity
-          style={[styles.socialButton, isLoading === "github" && styles.socialButtonLoading]}
+        <SocialSignInButton
+          provider="github"
           onPress={handleGitHubSignIn}
-          activeOpacity={0.9}
+          isLoading={isLoading === "github"}
           disabled={!!isLoading}
-        >
-          <View style={styles.socialIconContainer}>
-            {isLoading === "github" ? (
-              <ActivityIndicator size="small" color={colors.surface} />
-            ) : (
-              <Ionicons name="logo-github" size={20} color={colors.surface} />
-            )}
-          </View>
-          <Text style={styles.socialButtonText}>
-            {isLoading === "github" ? "Signing in..." : "Continue with GitHub"}
-          </Text>
-        </TouchableOpacity>
+        />
 
-        <TouchableOpacity
-          style={[styles.socialButton, styles.googleButton, isLoading === "google" && styles.socialButtonLoading]}
+        <SocialSignInButton
+          provider="google"
           onPress={handleGoogleSignIn}
-          activeOpacity={0.9}
+          isLoading={isLoading === "google"}
           disabled={!!isLoading}
-        >
-          <View style={styles.socialIconContainer}>
-            {isLoading === "google" ? (
-              <ActivityIndicator size="small" color={colors.surface} />
-            ) : (
-              <Ionicons name="logo-google" size={20} color={colors.surface} />
-            )}
-          </View>
-          <Text style={styles.socialButtonText}>
-            {isLoading === "google" ? "Signing in..." : "Continue with Google"}
-          </Text>
-        </TouchableOpacity>
+          style={styles.googleButton}
+        />
 
         <Text style={styles.termsText}>By continuing, you agree to our Terms and Privacy Policy</Text>
       </View>
@@ -162,41 +142,6 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingBottom: 40,
     alignItems: "center",
-  },
-  socialButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.white,
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 14,
-    marginBottom: 20,
-    width: "100%",
-    maxWidth: 300,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 5,
-  },
-  socialIconContainer: {
-    width: 24,
-    height: 24,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-  socialButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: colors.surface,
-  },
-  socialButtonLoading: {
-    opacity: 0.7,
   },
   googleButton: {
     marginBottom: 12,
