@@ -1,13 +1,11 @@
 import { colors } from "@/constants/color"
 import { Ionicons } from "@expo/vector-icons"
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View, ViewStyle } from "react-native"
+import type { ComponentProps } from "react"
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native"
 
-interface SocialSignInButtonProps {
+type SocialSignInButtonProps = ComponentProps<typeof TouchableOpacity> & {
   provider: "github" | "google"
-  onPress: () => void
-  isLoading: boolean
-  disabled?: boolean
-  style?: ViewStyle
+  isLoading?: boolean
 }
 
 const providerConfig = {
@@ -23,15 +21,14 @@ const providerConfig = {
   },
 }
 
-export function SocialSignInButton({ provider, onPress, isLoading, disabled = false, style }: SocialSignInButtonProps) {
+export function SocialSignInButton({ provider, isLoading, style, ...props }: SocialSignInButtonProps) {
   const config = providerConfig[provider]
 
   return (
     <TouchableOpacity
+      {...props}
       style={[styles.socialButton, isLoading && styles.socialButtonLoading, style]}
-      onPress={onPress}
       activeOpacity={0.9}
-      disabled={disabled}
     >
       <View style={styles.socialIconContainer}>
         {isLoading ? (
