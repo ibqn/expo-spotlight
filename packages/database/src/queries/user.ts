@@ -6,24 +6,24 @@ import unset from "lodash.unset"
 import type { CreateUserSchema, UpdateUserSchema } from "../validators/user"
 import type { ParamIdSchema } from "../validators/param"
 
-export const createUserItem = async (input: CreateUserSchema) => {
+export const createUserItem = async (input: CreateUserSchema): Promise<User> => {
   await db.insert(userTable).values(input).onConflictDoNothing()
 
   const [user] = await db.select().from(userTable).where(eq(userTable.email, input.email))
 
-  return user satisfies User as User
+  return user satisfies User
 }
 
-export const updateUserItem = async (input: ParamIdSchema & UpdateUserSchema) => {
+export const updateUserItem = async (input: ParamIdSchema & UpdateUserSchema): Promise<User> => {
   const [user] = await db.update(userTable).set(input).where(eq(userTable.id, input.id)).returning()
 
-  return user satisfies User as User | null
+  return user satisfies User
 }
 
-export const deleteUserItem = async ({ id }: ParamIdSchema) => {
-  const [user] = await db.delete(userTable).where(eq(userTable.id, id)).returning({ id: userTable.id })
+export const deleteUserItem = async ({ id }: ParamIdSchema): Promise<User> => {
+  const [user] = await db.delete(userTable).where(eq(userTable.id, id)).returning()
 
-  return { id: user?.id ?? null }
+  return user satisfies User
 }
 
 export const getUserItemsCount = async () => {

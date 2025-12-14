@@ -6,42 +6,62 @@ import type { User } from "database/src/drizzle/schema/auth"
 import { HTTPException } from "hono/http-exception"
 import { writeFile } from "fs/promises"
 import path from "path"
-import type { SuccessResponse } from "database/src/types"
+import type { PaginatedSuccessResponse, SuccessResponse } from "database/src/types"
 import { createUpload } from "database/src/queries/upload"
 import { postSchema } from "../validators/post"
 import { File } from "buffer"
 import type { Post } from "database/src/drizzle/schema/post"
-import { createPostItem } from "database/src/queries/post"
+import { createPostItem, getPostItems, getPostItemsCount } from "database/src/queries/post"
+import { postPaginationSchema } from "database/src/validators/post-pagination"
 
-export const postRoute = new Hono<ExtEnv>().post("/", signedIn, zValidator("form", postSchema), async (c) => {
-  const { file, ...uploadData } = c.req.valid("form")
-  const user = c.get("user") as User
+export const postRoute = new Hono<ExtEnv>()
+  .post("/", signedIn, zValidator("form", postSchema), async (c) => {
+    const { file, ...uploadData } = c.req.valid("form")
+    const user = c.get("user") as User
 
-  if (!(file instanceof File)) {
-    throw new HTTPException(400, { message: "Invalid file" })
-  }
+    if (!(file instanceof File)) {
+      throw new HTTPException(400, { message: "Invalid file" })
+    }
 
-  const filePath = path.join("file-storage", file.name)
-  const buffer = await file.arrayBuffer()
-  await writeFile(filePath, Buffer.from(buffer))
+    const filePath = path.join("file-storage", file.name)
+    const buffer = await file.arrayBuffer()
+    await writeFile(filePath, Buffer.from(buffer))
 
-  console.log("File uploaded", file.name)
+    console.log("File uploaded", file.name)
 
-  const upload = await createUpload({
-    user,
-    isPublic: false,
-    filePath: file.name,
+    const upload = await createUpload({
+      user,
+      isPublic: false,
+      filePath: file.name,
+    })
+
+    const post = await createPostItem({
+      userId: user.id,
+      imageId: upload.id,
+      ...uploadData,
+    })
+
+    return c.json<SuccessResponse<Post>>({
+      message: "File uploaded",
+      data: post,
+      success: true,
+    })
   })
+  .get("/", signedIn, zValidator("query", postPaginationSchema), async (c) => {
+    const query = c.req.valid("query")
+    const { page, limit } = query
 
-  const post = await createPostItem({
-    userId: user.id,
-    imageId: upload.id,
-    ...uploadData,
-  })
+    const postCount = await getPostItemsCount()
+    const postItems = await getPostItems(query)
 
-  return c.json<SuccessResponse<Post>>({
-    message: "File uploaded",
-    data: post,
-    success: true,
+    return c.json<PaginatedSuccessResponse<Post[]>>({
+      success: true,
+      data: postItems,
+      message: "Post items retrieved",
+      pagination: {
+        page,
+        totalPages: Math.ceil(postCount / limit),
+        totalItems: postCount,
+      },
+    })
   })
-})

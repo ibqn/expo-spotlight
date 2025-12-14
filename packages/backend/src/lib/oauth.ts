@@ -5,10 +5,12 @@ export const github = new GitHub(
   env.GITHUB_CLIENT_ID,
   env.GITHUB_CLIENT_SECRET,
   "http://localhost:3333/auth/sign-in/github/callback"
+  // `${env.FRONTEND_URL}/auth/sign-in/github/callback`
 )
 
 export const google = new Google(
   env.GOOGLE_CLIENT_ID,
   env.GOOGLE_CLIENT_SECRET,
   "http://localhost:3333/auth/sign-in/google/callback"
+  // `${env.FRONTEND_URL}/auth/sign-in/google/callback`
 )
