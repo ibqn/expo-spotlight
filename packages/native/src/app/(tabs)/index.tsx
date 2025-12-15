@@ -1,7 +1,5 @@
-// import { PostItem } from "@/components/post-item"
 import { postListQueryOptions } from "@/api/post"
 import { Loader } from "@/components/loader"
-import { PostDummy } from "@/components/post-dummy"
 import { PostItem } from "@/components/post-item"
 import { PostsNotFound } from "@/components/posts-not-found"
 import { StoryList } from "@/components/story-list"
