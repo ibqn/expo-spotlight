@@ -4,7 +4,6 @@ import { signedIn } from "../middleware/signed-in"
 import { zValidator } from "@hono/zod-validator"
 import type { User } from "database/src/drizzle/schema/auth"
 import { HTTPException } from "hono/http-exception"
-import { writeFile } from "fs/promises"
 import path from "path"
 import type { PaginatedSuccessResponse, SuccessResponse } from "database/src/types"
 import { createUpload } from "database/src/queries/upload"
@@ -13,6 +12,9 @@ import { File } from "buffer"
 import type { Post } from "database/src/drizzle/schema/post"
 import { createPostItem, getPostItems, getPostItemsCount } from "database/src/queries/post"
 import { postPaginationSchema } from "database/src/validators/post-pagination"
+import { Readable } from "stream"
+import { createWriteStream } from "fs"
+import { pipeline } from "stream/promises"
 
 export const postRoute = new Hono<ExtEnv>()
   .post("/", signedIn, zValidator("form", postSchema), async (c) => {
@@ -24,8 +26,11 @@ export const postRoute = new Hono<ExtEnv>()
     }
 
     const filePath = path.join("file-storage", file.name)
-    const buffer = await file.arrayBuffer()
-    await writeFile(filePath, Buffer.from(buffer))
+
+    const readable = Readable.fromWeb(file.stream())
+    const writable = createWriteStream(filePath)
+
+    await pipeline(readable, writable)
 
     console.log("File uploaded", file.name)
 
